@@ -8,6 +8,7 @@
     height: 5%;
 }
 
+
 body{
     background-color: #E9E9E9;
 }
@@ -16,4 +17,13 @@ body{
     width: 100%;
     height: 250px;
     object-fit: cover;
+}
+
+.divLogoFooter img {
+  width: auto;
+  display: block;
+}
+
+footer p, h5{
+    color: #e24a0e;
 }
