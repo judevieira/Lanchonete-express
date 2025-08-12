@@ -1,0 +1,19 @@
+.carousel-item img {
+  height: 500px;
+  object-fit: cover;    
+}
+
+.icone{
+    width: 5%;
+    height: 5%;
+}
+
+body{
+    background-color: #E9E9E9;
+}
+
+.card-img{
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
