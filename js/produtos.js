@@ -216,7 +216,6 @@ function mostrarProdutosAleatorios(idContainer, qtde) {
                       <textarea id="observacao-${produto.id}" class="form-control" placeholder="ex: sem cebola, sem milho"></textarea> 
                   </div>
                   <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                       <button type="button" class="btn btn-dark btnAddCarrinho"
                         data-id="${produto.id}"
                         data-nome = "${produto.nome}"
@@ -255,7 +254,9 @@ document.addEventListener("click", function (e) {
         atualizaCarrinho();
         toastCarrinho();
     }
-})
+});
+
+
 function salvarCarrinho(){
     localStorage.setItem("carrinho",JSON.stringify(carrinho));
 }
@@ -280,6 +281,7 @@ function atualizaCarrinho(){
         </div>
         <div>
           R$ ${(item.valor * item.quantidade).toFixed(2)}
+          <button class="btn btn-sm btn-danger" onclick="removeItem(${item.id})">Remover</button>
         </div>
       </div>
     `;
@@ -294,6 +296,13 @@ function atualizaCarrinho(){
       <span>R$ ${total.toFixed(2)}</span>
     </div>
   `;
+}
+
+function removeItem(id){
+  carrinho = carrinho.filter(item => item.id != id);
+
+  salvarCarrinho();
+  atualizaCarrinho();
 }
 
 function toastCarrinho(){
@@ -347,13 +356,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const toastEl = document.getElementById('toastPedidoFinalizado');
 
         if (offcanvasEl) {
-        // mostra o toast DEPOIS que o offcanvas fechar
-        offcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
-            if (toastEl) bootstrap.Toast.getOrCreateInstance(toastEl).show();
-        }, { once: true });
+          // mostra o toast DEPOIS que o offcanvas fechar
+          offcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
+              if (toastEl) bootstrap.Toast.getOrCreateInstance(toastEl).show();
+          }, { once: true });
 
-        const inst = bootstrap.Offcanvas.getInstance(offcanvasEl) || new bootstrap.Offcanvas(offcanvasEl);
-        inst.hide();
+          const inst = bootstrap.Offcanvas.getInstance(offcanvasEl) || new bootstrap.Offcanvas(offcanvasEl);
+          inst.hide();
         } else {
         // se não tiver offcanvas mostra o toast direto
         if (toastEl) bootstrap.Toast.getOrCreateInstance(toastEl).show();

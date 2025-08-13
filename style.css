@@ -1,13 +1,24 @@
+*{
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight:300;
+  font-style: normal;
+}
+
 .carousel-item img {
   height: 500px;
   object-fit: cover;    
 }
 
-.icone{
-    width: 5%;
-    height: 5%;
+.icone-logo {
+  height: clamp(100px, 10vw, 100px); 
+  width: auto;
 }
 
+.icone-carrinho {
+  height: clamp(36px, 6vw, 48px); 
+  width: auto;
+}
 
 body{
     background-color: #E9E9E9;
