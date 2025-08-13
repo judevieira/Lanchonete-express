@@ -329,27 +329,57 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   //finaliza compra
-  
 
-  //filtro por categoria
+  const btnFinalizar = document.getElementById('btFinalizar');
 
-  const navlinks = document.querySelectorAll('.navbar-nav a.nav-link[data-categoria]');
+  if (btnFinalizar) {
+    btnFinalizar.addEventListener('click', () => {
+    
+        carrinho = [];
+        localStorage.removeItem('carrinho');
 
-  navlinks.forEach(link =>{
-    link.addEventListener("click", (e) =>{
-        e.preventDefault();
-        const categoriaSelecionada = link.dataset.categoria;
-        const cards = document.querySelectorAll(".roleCard[data-categoria]");
+        if (typeof atualizaCarrinho === 'function') {
+            atualizaCarrinho();
+        }
 
-        cards.forEach(card =>{
-            const categoriaCard = card.dataset.categoria;
-            card.hidden = (categoriaCard !== categoriaSelecionada);
-        });
+        // fecha o offcanvas
+        const offcanvasEl = document.getElementById('offcanvasCarrinho');
+        const toastEl = document.getElementById('toastPedidoFinalizado');
 
-        document.querySelectorAll('.navbar-nav a.nav-link').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
+        if (offcanvasEl) {
+        // mostra o toast DEPOIS que o offcanvas fechar
+        offcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
+            if (toastEl) bootstrap.Toast.getOrCreateInstance(toastEl).show();
+        }, { once: true });
+
+        const inst = bootstrap.Offcanvas.getInstance(offcanvasEl) || new bootstrap.Offcanvas(offcanvasEl);
+        inst.hide();
+        } else {
+        // se não tiver offcanvas mostra o toast direto
+        if (toastEl) bootstrap.Toast.getOrCreateInstance(toastEl).show();
+        }
     });
-  });
+    }
+
+    //filtro por categoria
+
+    const navlinks = document.querySelectorAll('.navbar-nav a.nav-link[data-categoria]');
+
+    navlinks.forEach(link =>{
+        link.addEventListener("click", (e) =>{
+            e.preventDefault();
+            const categoriaSelecionada = link.dataset.categoria;
+            const cards = document.querySelectorAll(".roleCard[data-categoria]");
+
+            cards.forEach(card =>{
+                const categoriaCard = card.dataset.categoria;
+                card.hidden = (categoriaCard !== categoriaSelecionada);
+            });
+
+            document.querySelectorAll('.navbar-nav a.nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
 
 
   //botao add carrinho modal e toast
