@@ -186,7 +186,7 @@ function mostrarProdutosAleatorios(idContainer, qtde) {
 
   produtosAleatorios.forEach(produto => {
     html += `
-      <div class="col-md-4 mb-4">
+      <div class="col-md-4 mb-4 roleCard" data-categoria="${produto.categoria}">
         <div class="card h-100">
           <img src="${produto.imagem}" alt="${produto.nome}" style="" class="card-img">
           <div class="card-body d-flex flex-column">
@@ -303,41 +303,79 @@ function toastCarrinho(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Recupera o carrinho salvo no localStorage
   const carrinhoSalvo = localStorage.getItem("carrinho");
   if (carrinhoSalvo) {
     carrinho = JSON.parse(carrinhoSalvo);
     atualizaCarrinho();
   }
 
-  // Exibe produtos aleatórios
   mostrarProdutosAleatorios("produtos-cardapio", produtos.length);
   mostrarProdutosAleatorios("produtos-aleatorios", 8);
 
-  // Seleciona o toast do carrinho
-  const toastEl = document.getElementById("toastCarrinho");
-  const toast = new bootstrap.Toast(toastEl);
+  //limpando carrinho 
 
-  // Escuta cliques no botão "Adicionar ao carrinho"
+  const btnLimpar = document.getElementById('btLimpar');
+
+  if (btnLimpar) {
+    btnLimpar.addEventListener('click', () => {
+        carrinho = [];
+        localStorage.removeItem('carrinho');
+
+        // atualiza a interface
+        if (typeof atualizaCarrinho === 'function') {
+        atualizaCarrinho();
+        } 
+    });
+  }
+
+  //finaliza compra
+  
+
+  //filtro por categoria
+
+  const navlinks = document.querySelectorAll('.navbar-nav a.nav-link[data-categoria]');
+
+  navlinks.forEach(link =>{
+    link.addEventListener("click", (e) =>{
+        e.preventDefault();
+        const categoriaSelecionada = link.dataset.categoria;
+        const cards = document.querySelectorAll(".roleCard[data-categoria]");
+
+        cards.forEach(card =>{
+            const categoriaCard = card.dataset.categoria;
+            card.hidden = (categoriaCard !== categoriaSelecionada);
+        });
+
+        document.querySelectorAll('.navbar-nav a.nav-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+    });
+  });
+
+
+  //botao add carrinho modal e toast
   document.addEventListener("click", function (e) {
-    if (e.target.classList.contains("btnAddCarrinho")) {
+    const btn = e.target.closest(".btnAddCarrinho");
+    if (!btn) return;
 
-      // Fecha o modal do produto
-      const modalEl = e.target.closest(".modal");
-      if (modalEl) {
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        modalInstance.hide();
+    const modalEl = btn.closest(".modal");
+    if (modalEl) {
+      const hasDataDismiss = btn.hasAttribute("data-bs-dismiss");
 
-        // Quando o modal fechar, exibe o toast
-        modalEl.addEventListener(
-          "hidden.bs.modal",
-          function () {
-            toast.show();
-          },
-          { once: true }
-        );
-      }
+      const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      if (!hasDataDismiss) modalInstance.hide();
+
+      // Exibe o toast depois que o modal terminar de fechar
+      modalEl.addEventListener("hidden.bs.modal", () => {
+        // pequeno adiamento ajuda a evitar “piscar” quando o scrollbar volta
+        setTimeout(showCartToast, 50);
+      }, { once: true });
+    } else {
+      // Se não há modal, mostra direto
+      showCartToast();
     }
   });
 });
+
+
+
 
