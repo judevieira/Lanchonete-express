@@ -213,11 +213,16 @@ function mostrarProdutosAleatorios(idContainer, qtde) {
                       <strong>R$${produto.valor}</strong><br>
 
                       <label for="obs-${produto.id}" class="form-label">Observações:</label>
-                      <textarea for="obs-${produto.id}" class="form-control" placeholder="ex: sem cebola, sem milho"></textarea> 
+                      <textarea id="observacao-${produto.id}" class="form-control" placeholder="ex: sem cebola, sem milho"></textarea> 
                   </div>
                   <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                      <button type="button" class="btn btn-dark">Adicionar ao carrinho</button>
+                      <button type="button" class="btn btn-dark btnAddCarrinho"
+                        data-id="${produto.id}"
+                        data-nome = "${produto.nome}"
+                        data-valor = "${produto.valor}">
+                        Adicionar ao carrinho
+                      </button>
                   </div>
               </div>
           </div>
@@ -230,7 +235,109 @@ function mostrarProdutosAleatorios(idContainer, qtde) {
 }
 
 
+let carrinho = [];
+
+document.addEventListener("click", function (e) {
+    if(e.target.classList.contains("btnAddCarrinho")){
+
+        const id = e.target.dataset.id;
+        const nome = e.target.dataset.nome;
+        const valor = parseFloat(e.target.dataset.valor);
+        const obs = document.getElementById(`observacao-${id}`).value;
+
+        const itemExiste = carrinho.find(item => item.id === id);
+        if(itemExiste){
+            itemExiste.quantidade +=1;
+        }else{
+            carrinho.push({id, nome, valor, observacao: obs, quantidade: 1});
+        }
+        salvarCarrinho();
+        atualizaCarrinho();
+        toastCarrinho();
+    }
+})
+function salvarCarrinho(){
+    localStorage.setItem("carrinho",JSON.stringify(carrinho));
+}
+
+function atualizaCarrinho(){
+    const container = document.getElementById("itensCarrinho");
+    if(!container) return;
+
+    container.innerHTML="";
+
+    let total = 0;
+
+    carrinho.forEach(item => {
+    total += item.valor * item.quantidade;
+
+    container.innerHTML += `
+      <div class="item-carrinho d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <strong>${item.nome}</strong><br>
+          R$ ${item.valor.toFixed(2)} x ${item.quantidade}
+          ${item.observacao ? `<br><em>Obs: ${item.observacao}</em>` : ""} 
+        </div>
+        <div>
+          R$ ${(item.valor * item.quantidade).toFixed(2)}
+        </div>
+      </div>
+    `;
+  });
+
+  salvarCarrinho();
+
+  container.innerHTML += `
+    <hr>
+    <div class="total d-flex justify-content-between fw-bold">
+      <span>Total:</span>
+      <span>R$ ${total.toFixed(2)}</span>
+    </div>
+  `;
+}
+
+function toastCarrinho(){
+    const abaToast = document.getElementById("toastCarrinho");
+    const toast = new bootstrap.Toast(abaToast);
+    toast.show();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  mostrarProdutosAleatorios("produtos-cardapio", (produtos.length));
-  mostrarProdutosAleatorios("produtos-aleatorios",8);
+  // Recupera o carrinho salvo no localStorage
+  const carrinhoSalvo = localStorage.getItem("carrinho");
+  if (carrinhoSalvo) {
+    carrinho = JSON.parse(carrinhoSalvo);
+    atualizaCarrinho();
+  }
+
+  // Exibe produtos aleatórios
+  mostrarProdutosAleatorios("produtos-cardapio", produtos.length);
+  mostrarProdutosAleatorios("produtos-aleatorios", 8);
+
+  // Seleciona o toast do carrinho
+  const toastEl = document.getElementById("toastCarrinho");
+  const toast = new bootstrap.Toast(toastEl);
+
+  // Escuta cliques no botão "Adicionar ao carrinho"
+  document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("btnAddCarrinho")) {
+
+      // Fecha o modal do produto
+      const modalEl = e.target.closest(".modal");
+      if (modalEl) {
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        modalInstance.hide();
+
+        // Quando o modal fechar, exibe o toast
+        modalEl.addEventListener(
+          "hidden.bs.modal",
+          function () {
+            toast.show();
+          },
+          { once: true }
+        );
+      }
+    }
+  });
 });
+
