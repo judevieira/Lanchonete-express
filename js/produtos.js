@@ -173,7 +173,7 @@ const produtos = [
 function mostrarProdutosAleatorios(idContainer, qtde) {
   const container = document.getElementById(idContainer);
   if(!container) return; //sai se o container nao existir
-  container.innerHTML = ""; // limpa conteúdo
+  container.innerHTML = "";
 
   // Embaralha e pega qtde produtos
   const produtosAleatorios = produtos
@@ -237,69 +237,94 @@ function mostrarProdutosAleatorios(idContainer, qtde) {
 let carrinho = [];
 
 document.addEventListener("click", function (e) {
-    if(e.target.classList.contains("btnAddCarrinho")){
+    if (e.target.classList.contains("btnAddCarrinho")) {
 
-        const id = e.target.dataset.id;
+        const id = parseInt(e.target.dataset.id);
         const nome = e.target.dataset.nome;
-        const valor = parseFloat(e.target.dataset.valor);
-        const obs = document.getElementById(`observacao-${id}`).value;
+        const valor = parseFloat(e.target.dataset.valor.replace(",", "."));
+        const obs = document.getElementById(`observacao-${id}`).value.trim();
 
-        const itemExiste = carrinho.find(item => item.id === id);
-        if(itemExiste){
-            itemExiste.quantidade +=1;
-        }else{
-            carrinho.push({id, nome, valor, observacao: obs, quantidade: 1});
+        // verifica se já existe um item com mesmo id e mesma observação
+        const itemExiste = carrinho.find(item => item.id === id && item.observacao === obs);
+
+        if (itemExiste) {
+            // se já existe exatamente igual, aumenta a quantidade
+            itemExiste.quantidade += 1;
+        } else {
+            // se não existe, adiciona um novo item
+            carrinho.push({
+                id: id,
+                nome: nome,
+                valor: valor,
+                observacao: obs,
+                quantidade: 1
+            });
         }
+
         salvarCarrinho();
         atualizaCarrinho();
         toastCarrinho();
     }
 });
 
-
+//salvar carrinho
 function salvarCarrinho(){
     localStorage.setItem("carrinho",JSON.stringify(carrinho));
 }
 
-function atualizaCarrinho(){
-    const container = document.getElementById("itensCarrinho");
-    if(!container) return;
 
-    container.innerHTML="";
+//atualiza carrinho
+function atualizaCarrinho() {
+    const container = document.getElementById("itensCarrinho");
+    container.innerHTML = "";
 
     let total = 0;
 
     carrinho.forEach(item => {
-    total += item.valor * item.quantidade;
+        const subtotal = item.valor * item.quantidade;
+        total += subtotal;
+
+        container.innerHTML += `
+        <div class="item-carrinho d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>${item.nome}</strong><br>
+                R$ ${item.valor.toFixed(2)} x 
+                <input type="number" min="1" value="${item.quantidade}" class="form-control form-control-sm"
+                       onchange="mudarQuantidade(${item.id}, this.value)" style="width:60px;">
+                ${item.observacao ? `<br><em>Obs: ${item.observacao}</em>` : ""}
+            </div>
+            <div>
+                R$ ${subtotal.toFixed(2)}
+                <button onclick="removeItem(${item.id}, '${item.observacao}')" class="btn btn-sm btn-danger">Remover</button>
+            </div>
+        </div>
+        `;
+    });
 
     container.innerHTML += `
-      <div class="item-carrinho d-flex justify-content-between align-items-center mb-2">
-        <div>
-          <strong>${item.nome}</strong><br>
-          R$ ${item.valor.toFixed(2)} x ${item.quantidade}
-          ${item.observacao ? `<br><em>Obs: ${item.observacao}</em>` : ""} 
+        <hr>
+        <div class="total d-flex justify-content-between fw-bold">
+            <span>Total:</span>
+            <span>R$ ${total.toFixed(2)}</span>
         </div>
-        <div>
-          R$ ${(item.valor * item.quantidade).toFixed(2)}
-          <button class="btn btn-sm btn-danger" onclick="removeItem(${item.id})">Remover</button>
-        </div>
-      </div>
     `;
-  });
 
-  salvarCarrinho();
-
-  container.innerHTML += `
-    <hr>
-    <div class="total d-flex justify-content-between fw-bold">
-      <span>Total:</span>
-      <span>R$ ${total.toFixed(2)}</span>
-    </div>
-  `;
+    salvarCarrinho();
 }
 
-function removeItem(id){
-  carrinho = carrinho.filter(item => item.id != id);
+
+function mudarQuantidade(id, novaQuantidade) {
+    const item = carrinho.find(i => i.id === id);
+    if (item) {
+        item.quantidade = Math.max(1, parseInt(novaQuantidade));
+        atualizaCarrinho(); // atualiza subtotal e total
+        salvarCarrinho();
+    }
+}
+
+
+function removeItem(id, obs){
+  carrinho = carrinho.filter(item => !(item.id == id && item.observacao == obs));
 
   salvarCarrinho();
   atualizaCarrinho();
@@ -371,7 +396,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     //filtro por categoria
-
     const navlinks = document.querySelectorAll('.navbar-nav a.nav-link[data-categoria]');
 
     navlinks.forEach(link =>{
@@ -405,7 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Exibe o toast depois que o modal terminar de fechar
       modalEl.addEventListener("hidden.bs.modal", () => {
-        // pequeno adiamento ajuda a evitar “piscar” quando o scrollbar volta
+        // evita “piscar” quando o scrollbar volta
         setTimeout(showCartToast, 50);
       }, { once: true });
     } else {
