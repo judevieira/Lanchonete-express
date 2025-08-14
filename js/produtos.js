@@ -237,35 +237,43 @@ function mostrarProdutosAleatorios(idContainer, qtde) {
 let carrinho = [];
 
 document.addEventListener("click", function (e) {
-    if (e.target.classList.contains("btnAddCarrinho")) {
+  if (e.target.classList.contains("btnAddCarrinho")) {
 
-        const id = parseInt(e.target.dataset.id);
-        const nome = e.target.dataset.nome;
-        const valor = parseFloat(e.target.dataset.valor.replace(",", "."));
-        const obs = document.getElementById(`observacao-${id}`).value.trim();
+    const id = parseInt(e.target.dataset.id);
+    const nome = e.target.dataset.nome;
+    const valor = parseFloat(e.target.dataset.valor.replace(",", "."));
 
-        // verifica se já existe um item com mesmo id e mesma observação
-        const itemExiste = carrinho.find(item => item.id === id && item.observacao === obs);
+    // pega o textarea da observação, usa o valor e depois limpa
+    const obs = document.getElementById(`observacao-${id}`);
+    const observ = obs ? obs.value.trim() : "";
 
-        if (itemExiste) {
-            // se já existe exatamente igual, aumenta a quantidade
-            itemExiste.quantidade += 1;
-        } else {
-            // se não existe, adiciona um novo item
-            carrinho.push({
-                id: id,
-                nome: nome,
-                valor: valor,
-                observacao: obs,
-                quantidade: 1
-            });
-        }
+    // verifica se já existe um item com mesmo id e mesma observação
+    const itemExiste = carrinho.find(item => item.id === id && item.observacao === observ);
 
-        salvarCarrinho();
-        atualizaCarrinho();
-        toastCarrinho();
+    if (itemExiste) {
+      // se já existe exatamente igual, aumenta a quantidade
+      itemExiste.quantidade += 1;
+    } else {
+      // se não existe, adiciona um novo item
+      carrinho.push({
+        id: id,
+        nome: nome,
+        valor: valor,
+        observacao: observ,
+        quantidade: 1
+      });
     }
+
+    salvarCarrinho();
+    atualizaCarrinho();
+
+    // limpa o campo de observação após usar
+    if (obs) obs.value = "";
+
+    toastCarrinho();
+  }
 });
+
 
 //salvar carrinho
 function salvarCarrinho(){
@@ -337,6 +345,15 @@ function toastCarrinho(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (!Array.isArray(window.carrinho)) {
+        try {
+            const salvo = localStorage.getItem('carrinho');
+            window.carrinho = salvo ? JSON.parse(salvo) : [];
+        } catch {
+            window.carrinho = [];
+        }
+    }
+
   const carrinhoSalvo = localStorage.getItem("carrinho");
   if (carrinhoSalvo) {
     carrinho = JSON.parse(carrinhoSalvo);
@@ -368,6 +385,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (btnFinalizar) {
     btnFinalizar.addEventListener('click', () => {
+
+        if (!Array.isArray(carrinho) || carrinho.length === 0) {
+      // opcional: dar um feedback aqui (ex.: toast “Carrinho vazio”)
+             return;
+        }
     
         carrinho = [];
         localStorage.removeItem('carrinho');
